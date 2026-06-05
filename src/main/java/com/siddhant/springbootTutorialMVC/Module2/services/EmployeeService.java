@@ -4,9 +4,13 @@ import com.siddhant.springbootTutorialMVC.Module2.dto.EmployeeDTO;
 import com.siddhant.springbootTutorialMVC.Module2.entities.EmployeeEntity;
 import com.siddhant.springbootTutorialMVC.Module2.repositories.EmployeeRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,12 +24,11 @@ public class EmployeeService {
         this.modelMapper = modelMapper;
     }
 
-    public EmployeeDTO getEmployeeById(Long id) {
-        EmployeeEntity employeeEntity = employeeRepository.findById(id).orElse(null);
-
-        //ModelMapper is used to convert any kind of Class into Object
-        //ModelMapper tries to create an Object of all the fields present in the Class file into object file
-        return modelMapper.map(employeeEntity, EmployeeDTO.class);
+    public Optional<EmployeeDTO> getEmployeeById(Long id) {
+//        Optional<EmployeeEntity> employeeEntity = employeeRepository.findById(id);
+//        return employeeEntity.map(entity -> modelMapper.map(entity, EmployeeDTO.class));
+        return employeeRepository.findById(id)
+                .map(entity -> modelMapper.map(entity, EmployeeDTO.class));
     }
 
     public List<EmployeeDTO> getAllEmployees() {
@@ -40,5 +43,37 @@ public class EmployeeService {
         EmployeeEntity toSaveEmployee = modelMapper.map(inputEmployee, EmployeeEntity.class);
         EmployeeEntity employeeEntity = employeeRepository.save(toSaveEmployee);
         return modelMapper.map(employeeEntity, EmployeeDTO.class);
+    }
+
+    public EmployeeDTO updateEmployeeById(Long id, EmployeeDTO employeeDTO) {
+        EmployeeEntity employeeEntity = modelMapper.map(employeeDTO,EmployeeEntity.class);
+        employeeEntity.setId(id);
+        return modelMapper.map(employeeRepository.save(employeeEntity), EmployeeDTO.class);
+    }
+
+    public boolean isExistsByEmployeeId(Long id) {
+        return employeeRepository.existsById(id);
+    }
+
+    public boolean deleteEmployeeById(Long id) {
+        boolean isExists = isExistsByEmployeeId(id);
+        if (!isExists) {
+            return false;
+        }
+        employeeRepository.deleteById(id);
+        return true;
+    }
+
+    public EmployeeDTO updatePartialEmployeeById(Long EmployeeId, Map<String, Object> updateObj){
+        boolean isExists = isExistsByEmployeeId(EmployeeId);
+        if(!isExists) return null;
+        EmployeeEntity employeeEntity = employeeRepository.findById(EmployeeId).get();
+        updateObj.forEach((field, value) -> {
+            Field fieldToBeUpdated = ReflectionUtils.getRequiredField(EmployeeEntity.class, field);
+            fieldToBeUpdated.setAccessible(true);
+            ReflectionUtils.setField(fieldToBeUpdated, employeeEntity, value);
+        });
+
+        return modelMapper.map(employeeRepository.save(employeeEntity),EmployeeDTO.class);
     }
 }
