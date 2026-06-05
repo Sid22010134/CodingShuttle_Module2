@@ -1,6 +1,8 @@
 package com.siddhant.springbootTutorialMVC.Module2.controllers;
 
 import com.siddhant.springbootTutorialMVC.Module2.dto.EmployeeDTO;
+import com.siddhant.springbootTutorialMVC.Module2.entities.EmployeeEntity;
+import com.siddhant.springbootTutorialMVC.Module2.repositories.EmployeeRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -15,21 +17,35 @@ public class EmployeeController {
 //        return "Employee";
 //    }
 
+    private final EmployeeRepository employeeRepository;
+
+    public EmployeeController(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
+    }
+
     @GetMapping("/{employeeId}")
-    public EmployeeDTO getEmployeeById(@PathVariable(name = "employeeId") Long id) {
-        return new EmployeeDTO(id, "Siddhant", "siddhant@gmail.com", 22, LocalDate.of(2024, 6, 5), true);
+    public EmployeeEntity getEmployeeById(@PathVariable(name = "employeeId") Long id) {
+        return employeeRepository.findById(id).orElse(null);
     }
 
     @GetMapping
-    public String getAllEmployees(@RequestParam Integer age,
+    public List<EmployeeEntity> getAllEmployees(@RequestParam(required = false) Integer age,
                                   @RequestParam(required = false) String sortBy) {
-        return "Hello Pal with age " + age + " and sort by " + sortBy;
+        return employeeRepository.findAll();
     }
 
+//    @PostMapping
+//    public EmployeeDTO createEmployee(@RequestBody EmployeeDTO inputEmployee) {
+//        inputEmployee.setId(100L);
+//        return inputEmployee;
+//    }
+
     @PostMapping
-    public String createEmployee(@RequestBody EmployeeDTO employeeDTO) {
-        return "Employee created";
+    public EmployeeEntity createEmployee(@RequestBody EmployeeEntity inputEmployee) {
+        return employeeRepository.save(inputEmployee);
     }
+
+
 
     @PutMapping
     public String updateEmployee() {
