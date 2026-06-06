@@ -3,6 +3,7 @@ package com.siddhant.springbootTutorialMVC.Module2.controllers;
 import com.siddhant.springbootTutorialMVC.Module2.dto.EmployeeDTO;
 import com.siddhant.springbootTutorialMVC.Module2.entities.EmployeeEntity;
 import com.siddhant.springbootTutorialMVC.Module2.services.EmployeeService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,7 +49,7 @@ public class EmployeeController {
 //    }
 
     @PostMapping
-    public EmployeeDTO createEmployee(@RequestBody EmployeeDTO inputEmployee) {
+    public EmployeeDTO createEmployee(@RequestBody @Valid EmployeeDTO inputEmployee) {
         return employeeService.createNewEmployee(inputEmployee);
     }
 
